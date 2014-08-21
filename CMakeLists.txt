@@ -6,7 +6,7 @@ endif(COMMAND cmake_policy)
 project(Ensitsp)
 enable_testing()
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror -O3 -std=gnu99")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror -03 -std=gnu99")
 
 #########
 # Gestion des logins
@@ -27,7 +27,7 @@ find_library(MISC_LIBRARY NAMES m libm rt librt)
 # Si vous utilisez d'autres fichiers .c, en plus de ceux listés,
 # il faut les ajouter ici
 ##
-add_executable(ensitsp src/tsp-genmap.c  src/tsp-job.c  src/tsp-main-para.c  src/tsp-print.c  src/tsp-tsp.c)
+add_executable(ensitsp src/tsp-genmap.c  src/tsp-job.c  src/tsp-main-para.c  src/tsp-print.c  src/tsp-tsp.c src/tsp-lp.c)
 target_link_libraries(ensitsp ${CMAKE_THREAD_LIBS_INIT} m rt)
 
 ##
