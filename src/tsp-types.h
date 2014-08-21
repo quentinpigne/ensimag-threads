@@ -1,5 +1,6 @@
 #ifndef _TSP_TYPES_H
 #define _TSP_TYPES_H
+#include <stdbool.h>
 
 #define MAX_TOWNS 30
 
@@ -15,5 +16,6 @@ extern tsp_distance_matrix_t distance;
 /* parametres du programme */
 extern int nb_towns;
 extern long int myseed;
+extern bool affiche_progress;
 
 #endif

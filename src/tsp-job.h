@@ -9,6 +9,8 @@ struct tsp_queue {
    struct tsp_cell *first;
    struct tsp_cell *last;
    int end;
+   int nbmax;
+   int nb;
 };
 
 /* Initialise la file [q]. */

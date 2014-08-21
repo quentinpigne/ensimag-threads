@@ -24,6 +24,8 @@ void init_queue (struct tsp_queue *q) {
     q->first = 0;
     q->last = 0;
     q->end = 0;
+    q->nbmax = 0;
+    q->nb = 0;
 }
 
 int empty_queue (struct tsp_queue *q) {
@@ -50,6 +52,8 @@ void add_job (struct tsp_queue *q, tsp_path_t p, int hops, int len, uint64_t vpr
        q->last->next = ptr;
        q->last = ptr;
    }
+   q->nbmax ++;
+   q->nb ++;
 }
 
 int get_job (struct tsp_queue *q, tsp_path_t p, int *hops, int *len, uint64_t *vpres) {
@@ -72,6 +76,11 @@ int get_job (struct tsp_queue *q, tsp_path_t p, int *hops, int *len, uint64_t *v
    memcpy (p, ptr->tsp_job.path, *hops * sizeof(p[0]));
 
    free (ptr);
+
+   q->nb --;
+   if (affiche_progress)
+     printf("<!- %d / %d %% ->\n",q->nb, q->nbmax);
+
    return 1;
 } 
 

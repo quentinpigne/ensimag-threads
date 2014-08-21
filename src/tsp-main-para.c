@@ -14,7 +14,7 @@
 #include "tsp-genmap.h"
 #include "tsp-print.h"
 #include "tsp-tsp.h"
-
+#include "tsp-lp.h"
 
 /* macro de mesure de temps, retourne une valeur en nanosecondes */
 #define TIME_DIFF(t1, t2) \
@@ -35,7 +35,7 @@ int nb_threads=1;
 
 /* affichage SVG */
 bool affiche_sol= false;
-
+bool affiche_progress=false;
 
 static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len, int depth)
 {
@@ -79,10 +79,13 @@ int main (int argc, char **argv)
 
     /* lire les arguments */
     int opt;
-    while ((opt = getopt(argc, argv, "s")) != -1) {
+    while ((opt = getopt(argc, argv, "sp")) != -1) {
       switch (opt) {
       case 's':
 	affiche_sol = true;
+	break;
+      case 'p':
+	affiche_progress = true;
 	break;
       default:
 	usage(argv[0]);
@@ -124,7 +127,14 @@ int main (int argc, char **argv)
     while (!empty_queue (&q)) {
         int hops = 0, len = 0;
         get_job (&q, solution, &hops, &len, &vpres);
-        tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);
+	
+	// le noeud est moins bon que la solution courante
+	if (minimum < INT_MAX
+	    && (nb_towns - hops) > 10
+	    && (lower_bound_using_lp(solution, hops, len, vpres)) >= minimum)
+	  continue;
+
+	tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);
     }
     
     clock_gettime (CLOCK_REALTIME, &t2);

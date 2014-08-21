@@ -98,7 +98,7 @@ int lower_bound_using_lp(tsp_path_t path, int hops, int len, uint64_t vpres) {
   save_lp(f, path, hops, len, vpres);
   fclose(f);
 
-  FILE* sol = popen("cbc toto.lp","r");
+  FILE* sol = popen("cbc toto.lp | grep 'Objective value'","r");
   double val;
   fscanf(sol, "Objective value: %lg",& val);
   fclose(sol);
