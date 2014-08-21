@@ -33,7 +33,11 @@ target_link_libraries(ensitsp ${CMAKE_THREAD_LIBS_INIT} m rt)
 ##
 # Programme de test
 ##
-add_test(MesuresDePerf ../mesures/mesures.pl)
+add_test(Tests ../tests/validite.pl)
+add_custom_target(check ../tests/validite.pl)
+
+#add_test(MesuresDePerf ../mesures/mesures.pl)
+
 
 ##
 # Construction de l'archive
