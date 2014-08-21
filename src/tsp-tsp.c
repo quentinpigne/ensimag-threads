@@ -1,35 +1,40 @@
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "tsp-types.h"
 #include "tsp-genmap.h"
 #include "tsp-print.h"
 #include "tsp-tsp.h"
+#include "tsp-lp.h"
 
 /* dernier minimum trouvé */
 int minimum;
 
 /* résolution du problème du voyageur de commerce */
-int present (int city, int hops, tsp_path_t path)
-{
-    for (int i = 0; i < hops; i++) {
-        if (path [i] == city) {
-            return 1;
-        }
-    }
-    
-    return 0 ;
+int present (int city, int hops, tsp_path_t path, uint64_t vpres)
+{    
+  return (vpres & (1<<city)) != 0;
 }
 
 
 
-void tsp (int hops, int len, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len)
+void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len)
 {
-  if (len + cutprefix[(nb_towns-hops)] >= minimum) {
+    if (len + cutprefix[(nb_towns-hops)] >= minimum) {
       (*cuts)++ ;
       return;
     }
-    
+  
+    /* un rayon de coupure à 13, pour ne pas lancer la programmation
+       linéaire pour les petits arbres, plus rapide à calculer sans */
+    if ((nb_towns - hops) > 13
+	&& lower_bound_using_lp(path, hops, len, vpres) >= minimum) {
+      (*cuts)++;
+      return;
+    }
+
+  
     if (hops == nb_towns) {
 	    int me = path [hops - 1];
 	    int dist = distance[me][0]; // retourner en 0
@@ -42,10 +47,12 @@ void tsp (int hops, int len, tsp_path_t path, long long int *cuts, tsp_path_t so
     } else {
         int me = path [hops - 1];        
         for (int i = 0; i < nb_towns; i++) {
-            if (!present (i, hops, path)) {
+	  if (!present (i, hops, path, vpres)) {
                 path[hops] = i;
+		vpres |= (1<<i);
                 int dist = distance[me][i];
-                tsp (hops + 1, len + dist, path, cuts, sol, sol_len);
+                tsp (hops + 1, len + dist, vpres, path, cuts, sol, sol_len);
+		vpres &= (~(1<<i));
             }
         }
     }

@@ -37,7 +37,7 @@ int nb_threads=1;
 bool affiche_sol= false;
 
 
-static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len, int depth)
+static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len, int depth)
 {
     if (len >= minimum) {
         (*cuts)++ ;
@@ -46,14 +46,16 @@ static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, tsp_path_
     
     if (hops == depth) {
         /* On enregistre du travail à faire plus tard... */
-        add_job (q, path, hops, len);
+      add_job (q, path, hops, len, vpres);
     } else {
         int me = path [hops - 1];        
         for (int i = 0; i < nb_towns; i++) {
-            if (!present (i, hops, path)) {
+	  if (!present (i, hops, path, vpres)) {
                 path[hops] = i;
+		vpres |= (1<<i);
                 int dist = distance[me][i];
-                generate_tsp_jobs (q, hops + 1, len + dist, path, cuts, sol, sol_len, depth);
+                generate_tsp_jobs (q, hops + 1, len + dist, vpres, path, cuts, sol, sol_len, depth);
+		vpres &= (~(1<<i));
             }
         }
     }
@@ -68,6 +70,7 @@ int main (int argc, char **argv)
 {
     unsigned long long perf;
     tsp_path_t path;
+    uint64_t vpres=0;
     tsp_path_t sol;
     int sol_len;
     long long int cuts = 0;
@@ -108,9 +111,10 @@ int main (int argc, char **argv)
 
     memset (path, -1, MAX_TOWNS * sizeof (int));
     path[0] = 0;
+    vpres=1;
 
     /* mettre les travaux dans la file d'attente */
-    generate_tsp_jobs (&q, 1, 0, path, &cuts, sol, & sol_len, 3);
+    generate_tsp_jobs (&q, 1, 0, vpres, path, &cuts, sol, & sol_len, 3);
     no_more_jobs (&q);
    
     /* calculer chacun des travaux */
@@ -119,8 +123,8 @@ int main (int argc, char **argv)
     solution[0] = 0;
     while (!empty_queue (&q)) {
         int hops = 0, len = 0;
-        get_job (&q, solution, &hops, &len);
-        tsp (hops, len, solution, &cuts, sol, &sol_len);
+        get_job (&q, solution, &hops, &len, &vpres);
+        tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);
     }
     
     clock_gettime (CLOCK_REALTIME, &t2);
