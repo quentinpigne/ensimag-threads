@@ -44,7 +44,8 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
 		    minimum = len + dist;
 		    *sol_len = len + dist;
 		    memcpy(sol, path, nb_towns*sizeof(int));
-		    print_solution (path, len+dist);
+		    if (!quiet)
+		      print_solution (path, len+dist);
 	    }
     } else {
         int me = path [hops - 1];        

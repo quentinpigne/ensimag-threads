@@ -36,6 +36,7 @@ int nb_threads=1;
 /* affichage SVG */
 bool affiche_sol= false;
 bool affiche_progress=false;
+bool quiet=false;
 
 static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cuts, tsp_path_t sol, int *sol_len, int depth)
 {
@@ -79,13 +80,16 @@ int main (int argc, char **argv)
 
     /* lire les arguments */
     int opt;
-    while ((opt = getopt(argc, argv, "sp")) != -1) {
+    while ((opt = getopt(argc, argv, "spq")) != -1) {
       switch (opt) {
       case 's':
 	affiche_sol = true;
 	break;
       case 'p':
 	affiche_progress = true;
+	break;
+      case 'q':
+	quiet = true;
 	break;
       default:
 	usage(argv[0]);
@@ -105,7 +109,8 @@ int main (int argc, char **argv)
     minimum = INT_MAX;
       
     /* generer la carte et la matrice de distance */
-    fprintf (stderr, "ncities = %3d\n", nb_towns);
+    if (! quiet)
+      fprintf (stderr, "ncities = %3d\n", nb_towns);
     genmap ();
 
     init_queue (&q);

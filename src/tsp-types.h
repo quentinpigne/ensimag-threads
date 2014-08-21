@@ -17,5 +17,6 @@ extern tsp_distance_matrix_t distance;
 extern int nb_towns;
 extern long int myseed;
 extern bool affiche_progress;
+extern bool quiet;
 
 #endif
