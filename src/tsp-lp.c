@@ -7,6 +7,7 @@
 #include "tsp-types.h"
 #include "tsp-tsp.h"
 #include "tsp-lp.h"
+#include "lpsolveurs.h"
 
 /* sauvergarde dans un fichier d'un programme linéaire (Format LP)
    calculant une borne inférieur sur la longueur du TSP de la solution
@@ -94,14 +95,38 @@ void save_lp(FILE* f, tsp_path_t path, int hops, int len, uint64_t vpres) {
    son résultat */ 
 
 int lower_bound_using_lp(tsp_path_t path, int hops, int len, uint64_t vpres) {
+
+  if (SOLVEUR == SOLVEUR_NONE) {
+    return 0;
+  }
+
   FILE *f = fopen("toto.lp","w");
   save_lp(f, path, hops, len, vpres);
   fclose(f);
 
-  FILE* sol = popen("cbc toto.lp | grep 'Objective value'","r");
-  double val;
-  fscanf(sol, "Objective value: %lg",& val);
-  fclose(sol);
+  double val=0.0;
+  FILE *sol=0;
+
+  switch(SOLVEUR_GLPSOL) {
+  case SOLVEUR_CBC:
+    sol = popen("cbc toto.lp | grep 'Objective value'","r");
+    fscanf(sol, "Objective value: %lg",& val);
+    fclose(sol);
+    break;
+  case SOLVEUR_SYMPHONY:
+    sol = popen("symphony -L toto.lp | grep \"Solution Cost: \"","r");
+    fscanf(sol, "Solution Cost: %lg",& val);
+    fclose(sol);
+    break;
+  case SOLVEUR_GLPSOL:
+    sol = popen("glpsol --lp toto.lp -o /dev/stdout | grep 'Objective:  L = '","r");
+    fscanf(sol, "Objective:  L =  %lg",& val);
+    fclose(sol);
+    break;
+  case SOLVEUR_NONE:
+    return 0;
+    break;
+  }
   int longueur = ((int) val) + len;
   return longueur;
 }
