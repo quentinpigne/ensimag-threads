@@ -5,14 +5,14 @@ use strict;
 use autodie;
 use Sys::Hostname;
 
-use Test::Simple tests => 72;
+use Test::Simple tests => 18;
 
 my $tsp="../build/ensitsp -q";
 my @valg=("", "valgrind -q --tool=drd","valgrind -q --tool=helgrind");
 
 my @allnthreads= (1, 2, 4);
-my @allncities= (15..18);
-my @allseeds= (12387, 12388);
+my @allncities= (15, 18);
+my @allseeds= (12387);
 my %solutions= ( 
     "15_12387" => 328, 
     "15_12388" => 286,
