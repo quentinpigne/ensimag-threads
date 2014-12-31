@@ -41,7 +41,6 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
        linéaire pour les petits arbres, plus rapide à calculer sans */
     if ((nb_towns - hops) > 22
 	&& lower_bound_using_lp(path, hops, len, vpres) >= minimum) {
-      fprintf(stderr, "COUPE LP");
       (*cuts)++;
       return;
     }
