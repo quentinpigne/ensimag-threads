@@ -15,6 +15,8 @@
 #include "tsp-print.h"
 #include "tsp-tsp.h"
 #include "tsp-lp.h"
+#include "tsp-hkbound.h"
+
 
 /* macro de mesure de temps, retourne une valeur en nanosecondes */
 #define TIME_DIFF(t1, t2) \
@@ -22,7 +24,7 @@
 
 
 /* tableau des distances */
-tsp_distance_matrix_t distance ={};
+tsp_distance_matrix_t tsp_distance ={};
 
 /** Paramètres **/
 
@@ -54,7 +56,7 @@ static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, uint64_t 
 	  if (!present (i, hops, path, vpres)) {
                 path[hops] = i;
 		vpres |= (1<<i);
-                int dist = distance[me][i];
+                int dist = tsp_distance[me][i];
                 generate_tsp_jobs (q, hops + 1, len + dist, vpres, path, cuts, sol, sol_len, depth);
 		vpres &= (~(1<<i));
             }
@@ -136,7 +138,10 @@ int main (int argc, char **argv)
 	// le noeud est moins bon que la solution courante
 	if (minimum < INT_MAX
 	    && (nb_towns - hops) > 10
-	    && (lower_bound_using_lp(solution, hops, len, vpres)) >= minimum)
+	    && ( (lower_bound_using_hk(solution, hops, len, vpres)) >= minimum
+		 || (lower_bound_using_lp(solution, hops, len, vpres)) >= minimum)
+	    )
+
 	  continue;
 
 	tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);

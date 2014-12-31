@@ -7,6 +7,7 @@ project(Ensitsp)
 enable_testing()
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror -O3 -std=gnu99")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -O3 -std=gnu++11")
 
 #########
 # Gestion des logins
@@ -27,6 +28,15 @@ endif()
 #####
 find_package(Threads)
 find_library(MISC_LIBRARY NAMES m libm rt librt)
+
+##### ENSIMAG-SPECIFIC
+# Utilisation d'un éventuel g++ et gcc dans /opt/gnat/bin
+# (CentOS 6 est en gcc 4.4, sans support de C++-11)
+#####
+if(EXISTS /opt/gnat/bin)
+  set(CMAKE_C_COMPILER /opt/gnat/bin/gcc)
+  set(CMAKE_CXX_COMPILER /opt/gnat/bin/g++)
+endif(EXISTS /opt/gnat/bin)
 
 ###
 # Détection d'un solveur linéaire disponible (COINOR-CBC,
@@ -63,7 +73,7 @@ configure_file (
 # Si vous utilisez d'autres fichiers .c, en plus de ceux listés,
 # il faut les ajouter ici
 ##
-add_executable(ensitsp src/tsp-genmap.c  src/tsp-job.c  src/tsp-main-para.c  src/tsp-print.c  src/tsp-tsp.c src/tsp-lp.c)
+add_executable(ensitsp src/tsp-genmap.c  src/tsp-job.c  src/tsp-main-para.c  src/tsp-print.c  src/tsp-tsp.c src/tsp-lp.c src/tsp-hkbound.cpp)
 target_link_libraries(ensitsp ${CMAKE_THREAD_LIBS_INIT} m rt)
 
 ##

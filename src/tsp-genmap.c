@@ -71,9 +71,9 @@ void genmap () {
             /* Un peu réaliste */
             dx = towns[i].x - towns[j].x;
             dy = towns[i].y - towns[j].y;
-            distance[i][j] = (int) sqrt ((double) ((dx * dx) + (dy * dy))) ;
-            if (i != j && distance[i][j] < cutprefix[i] && i < j )
-	      cutprefix[i] = distance[i][j];
+            tsp_distance[i][j] = (int) sqrt ((double) ((dx * dx) + (dy * dy))) ;
+            if (i != j && tsp_distance[i][j] < cutprefix[i] && i < j )
+	      cutprefix[i] = tsp_distance[i][j];
         }
     }
 

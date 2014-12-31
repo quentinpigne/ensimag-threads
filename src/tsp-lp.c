@@ -42,7 +42,7 @@ void save_lp(FILE* f, tsp_path_t path, int hops, int len, uint64_t vpres) {
 	if (i != j && x[i][j]) {
 	  if (plus)
 	    fprintf(f," +");
-	  fprintf(f, " %d x%d_%d",distance[i][j], i, j);
+	  fprintf(f, " %d x%d_%d",tsp_distance[i][j], i, j);
 	  plus = true;
       }
     }

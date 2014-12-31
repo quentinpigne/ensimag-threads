@@ -1,3 +1,4 @@
 *~
+*.o
 src/lpsolveurs.h
 build/

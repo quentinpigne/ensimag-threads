@@ -2,7 +2,7 @@
 #define _TSP_TYPES_H
 #include <stdbool.h>
 
-#define MAX_TOWNS 30
+#define MAX_TOWNS 40
 
 typedef int tsp_distance_matrix_t [MAX_TOWNS] [MAX_TOWNS];
 typedef int tsp_path_t [MAX_TOWNS];
@@ -11,7 +11,7 @@ typedef int tsp_path_t [MAX_TOWNS];
 #define MAXY	100
 
 /* tableau des distances */
-extern tsp_distance_matrix_t distance;
+extern tsp_distance_matrix_t tsp_distance;
 
 /* parametres du programme */
 extern int nb_towns;

@@ -20,7 +20,7 @@ void print_distance_matrix (bool svg)
     for (i = 0; i < nb_towns; i++) {
         printf ("distance [%1d]", i);
         for (j = 0; j < nb_towns; j++) {
-            printf (" [%2d:%2d] ", j, distance[i][j]);
+            printf (" [%2d:%2d] ", j, tsp_distance[i][j]);
         }
         printf (";\n\n");
     }

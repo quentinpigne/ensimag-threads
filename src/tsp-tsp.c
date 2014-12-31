@@ -7,6 +7,7 @@
 #include "tsp-print.h"
 #include "tsp-tsp.h"
 #include "tsp-lp.h"
+#include "tsp-hkbound.h"
 
 /* dernier minimum trouvé */
 int minimum;
@@ -27,11 +28,20 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
       (*cuts)++ ;
       return;
     }
-  
+
+    /* calcul de l'arbre couvrant comme borne inférieure */
+    if ((nb_towns - hops) > 6 &&
+	lower_bound_using_hk(path, hops, len, vpres) >= minimum) {
+      (*cuts)++;
+      return;
+    }
+
+
     /* un rayon de coupure à 15, pour ne pas lancer la programmation
        linéaire pour les petits arbres, plus rapide à calculer sans */
-    if ((nb_towns - hops) > 15
+    if ((nb_towns - hops) > 22
 	&& lower_bound_using_lp(path, hops, len, vpres) >= minimum) {
+      fprintf(stderr, "COUPE LP");
       (*cuts)++;
       return;
     }
@@ -39,7 +49,7 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
   
     if (hops == nb_towns) {
 	    int me = path [hops - 1];
-	    int dist = distance[me][0]; // retourner en 0
+	    int dist = tsp_distance[me][0]; // retourner en 0
             if ( len + dist < minimum ) {
 		    minimum = len + dist;
 		    *sol_len = len + dist;
@@ -53,7 +63,7 @@ void tsp (int hops, int len, uint64_t vpres, tsp_path_t path, long long int *cut
 	  if (!present (i, hops, path, vpres)) {
                 path[hops] = i;
 		vpres |= (1<<i);
-                int dist = distance[me][i];
+                int dist = tsp_distance[me][i];
                 tsp (hops + 1, len + dist, vpres, path, cuts, sol, sol_len);
 		vpres &= (~(1<<i));
             }
