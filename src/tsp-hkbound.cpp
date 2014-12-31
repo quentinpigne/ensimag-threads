@@ -11,7 +11,7 @@ using namespace std;
 
 
 typedef property<edge_weight_t, int> ewProperty;
-typedef adjacency_list< listS, vecS, undirectedS,
+typedef adjacency_list< slistS, vecS, undirectedS,
 			no_property, ewProperty > Graph;
 
 typedef Graph::edge_descriptor Edge;
