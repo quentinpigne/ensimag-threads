@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -O3 -std=gnu++
 #########
 # Vous devez editer la ligne suivante pour y mettre vos logins
 #########
-set(LOGINS login1 login2 login3)
+set(LOGINS pigneq salla)
 list(SORT LOGINS)
 
 if (LOGINS MATCHES "login[123]")
