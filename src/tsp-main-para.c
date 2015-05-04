@@ -17,6 +17,23 @@
 #include "tsp-lp.h"
 #include "tsp-hkbound.h"
 
+/* clock_gettime definition for OSX compatibility */
+#ifdef __MACH__
+
+#include <sys/time.h>
+
+#define CLOCK_REALTIME 0
+
+int clock_gettime(int clk_id, struct timespec* t) {
+    struct timeval now;
+    int rv = gettimeofday(&now, NULL);
+    if (rv) return rv;
+    t->tv_sec  = now.tv_sec;
+    t->tv_nsec = now.tv_usec * 1000;
+    return 0;
+}
+
+#endif
 
 /* macro de mesure de temps, retourne une valeur en nanosecondes */
 #define TIME_DIFF(t1, t2) \
@@ -26,7 +43,7 @@
 /* tableau des distances */
 tsp_distance_matrix_t tsp_distance ={};
 
-/** Paramètres **/
+/** ParamÃ¨tres **/
 
 /* nombre de villes */
 int nb_towns=10;
@@ -48,7 +65,7 @@ static void generate_tsp_jobs (struct tsp_queue *q, int hops, int len, uint64_t 
     }
     
     if (hops == depth) {
-        /* On enregistre du travail à faire plus tard... */
+        /* On enregistre du travail Ã  faire plus tard... */
       add_job (q, path, hops, len, vpres);
     } else {
         int me = path [hops - 1];        
@@ -126,7 +143,7 @@ int main (int argc, char **argv)
     /* mettre les travaux dans la file d'attente */
     generate_tsp_jobs (&q, 1, 0, vpres, path, &cuts, sol, & sol_len, 3);
     no_more_jobs (&q);
-   
+
     /* calculer chacun des travaux */
     tsp_path_t solution;
     memset (solution, -1, MAX_TOWNS * sizeof (int));
