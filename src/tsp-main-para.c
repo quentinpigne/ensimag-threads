@@ -16,6 +16,7 @@
 #include "tsp-tsp.h"
 #include "tsp-lp.h"
 #include "tsp-hkbound.h"
+#include <pthread.h>
 
 /* clock_gettime definition for OSX compatibility */
 #ifdef __MACH__
@@ -144,35 +145,45 @@ int main (int argc, char **argv)
     generate_tsp_jobs (&q, 1, 0, vpres, path, &cuts, sol, & sol_len, 3);
     no_more_jobs (&q);
 
+
+    /* mutex  */
+    pthread_mutex_t mutex_jobs,mutex_minimum, mutex_variables_globales;
+
+    pthread_mutex_init(&mutex_jobs,NULL);
+
+
     /* calculer chacun des travaux */
     tsp_path_t solution;
     memset (solution, -1, MAX_TOWNS * sizeof (int));
     solution[0] = 0;
     while (!empty_queue (&q)) {
         int hops = 0, len = 0;
+
+        pthread_mutex_lock(&mutex_jobs);
         get_job (&q, solution, &hops, &len, &vpres);
-	
-	// le noeud est moins bon que la solution courante
-	if (minimum < INT_MAX
-	    && (nb_towns - hops) > 10
-	    && ( (lower_bound_using_hk(solution, hops, len, vpres)) >= minimum
-		 || (lower_bound_using_lp(solution, hops, len, vpres)) >= minimum)
-	    )
+        pthread_mutex_unlock(&mutex_jobs);
 
-	  continue;
+        // le noeud est moins bon que la solution courante
+        if (minimum < INT_MAX
+            && (nb_towns - hops) > 10
+            && ( (lower_bound_using_hk(solution, hops, len, vpres)) >= minimum
+                 || (lower_bound_using_lp(solution, hops, len, vpres)) >= minimum)
+                )
 
-	tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);
+            continue;
+
+        tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);
     }
-    
+
     clock_gettime (CLOCK_REALTIME, &t2);
 
     if (affiche_sol)
-      print_solution_svg (sol, sol_len);
+        print_solution_svg (sol, sol_len);
 
     perf = TIME_DIFF (t1,t2);
     printf("<!-- # = %d seed = %ld len = %d threads = %d time = %lld.%03lld ms ( %lld coupures ) -->\n",
-	   nb_towns, myseed, sol_len, nb_threads,
-	   perf/1000000ll, perf%1000000ll, cuts);
+           nb_towns, myseed, sol_len, nb_threads,
+           perf/1000000ll, perf%1000000ll, cuts);
 
     return 0 ;
 }
