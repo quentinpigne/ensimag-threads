@@ -86,17 +86,51 @@ static void usage(const char *name) {
   fprintf (stderr, "Usage: %s [-s] <ncities> <seed> <nthreads>\n", name);
   exit (-1);
 }
+struct param_job{
+    tsp_path_t path;
+    tsp_path_t solution;
+    uint64_t vpres; // permet de reconstruire le chemin partiel <> tableau de bits
+    tsp_path_t best_sol;   // meilleure solution connue
+    int sol_len;  // longueur de la solution partiel
+    long long int cuts; //
+    struct tsp_queue q; // queue
 
+
+};
+void do_parallel(struct param_job* paramJob){
+    while (!empty_queue (&(paramJob->q))) {
+        int hops = 0, len = 0;
+
+        pthread_mutex_lock(&mutex_jobs);
+        get_job (&q, solution, &hops, &len, &(paramJob->vpres);
+        pthread_mutex_unlock(&mutex_jobs);
+
+
+        // le noeud est moins bon que la solution courante
+        if (minimum < INT_MAX
+            && (nb_towns - hops) > 10
+            && ( (lower_bound_using_hk(paramJob->solution, hops, len, paramJob->vpres)) >= minimum
+                 || (lower_bound_using_lp(paramJob->solution, hops, len, paramJob->vpres)) >= minimum)
+                )
+
+            continue;
+
+        tsp (hops, len, paramJob->vpres, paramJob->solution, &(paramJob->cuts), paramJob->best_sol, &(paramJob->sol_len));
+    }
+}
 int main (int argc, char **argv)
 {
     unsigned long long perf;
     tsp_path_t path;
-    uint64_t vpres=0;
-    tsp_path_t sol;
-    int sol_len;
-    long long int cuts = 0;
-    struct tsp_queue q;
+    uint64_t vpres=0; // permet de reconstruire le chemin partiel <> tableau de bits
+    tsp_path_t best_sol;   // meilleure solution connue
+    int sol_len;  // longueur de la solution partiel
+    long long int cuts = 0; //
+    struct tsp_queue q; // queue
     struct timespec t1, t2;
+
+
+
 
     /* lire les arguments */
     int opt;
@@ -142,26 +176,48 @@ int main (int argc, char **argv)
     vpres=1;
 
     /* mettre les travaux dans la file d'attente */
-    generate_tsp_jobs (&q, 1, 0, vpres, path, &cuts, sol, & sol_len, 3);
+    generate_tsp_jobs (&q, 1, 0, vpres, path, &cuts, best_sol, & sol_len, 3);
     no_more_jobs (&q);
 
 
     /* mutex  */
-    pthread_mutex_t mutex_jobs,mutex_minimum, mutex_variables_globales;
+    pthread_mutex_t mutex_jobs;//,mutex_minimum, mutex_variables_globales;
+    pthread_mutex_t mutex_sol_len;
+    pthread_mutex_t mutex_cuts;
+    pthread_mutex_t mutex_best_sol;
+    pthread_mutex_t mutex_solution;
 
     pthread_mutex_init(&mutex_jobs,NULL);
+    pthread_mutex_init(&mutex_sol_len,NULL);
+    pthread_mutex_init(&mutex_best_sol,NULL);
+    pthread_mutex_init(&mutex_cuts,NULL);
+    pthread_mutex_init(&mutex_solution,NULL);
 
+    pthread_t threads[nb_threads];
+    int ret_threads[nb_threads];
+    struct param_job paramJob;
+    paramJob.vpres=0;
+    paramJob.cuts =0;
 
     /* calculer chacun des travaux */
     tsp_path_t solution;
     memset (solution, -1, MAX_TOWNS * sizeof (int));
     solution[0] = 0;
+    (*paramJob.solution) = solution;
+
+    // Création des threads
+    for (int i = 0; i < nb_threads; ++i) {
+        ret_threads[i] = pthread_create(&threads[i],NULL,do_parallel,&paramJob);
+    }
+
+
     while (!empty_queue (&q)) {
         int hops = 0, len = 0;
 
         pthread_mutex_lock(&mutex_jobs);
         get_job (&q, solution, &hops, &len, &vpres);
         pthread_mutex_unlock(&mutex_jobs);
+
 
         // le noeud est moins bon que la solution courante
         if (minimum < INT_MAX
@@ -172,13 +228,13 @@ int main (int argc, char **argv)
 
             continue;
 
-        tsp (hops, len, vpres, solution, &cuts, sol, &sol_len);
+        tsp (hops, len, vpres, solution, &cuts, best_sol, &sol_len);
     }
-
+// to arrete parell
     clock_gettime (CLOCK_REALTIME, &t2);
 
     if (affiche_sol)
-        print_solution_svg (sol, sol_len);
+        print_solution_svg (best_sol, sol_len);
 
     perf = TIME_DIFF (t1,t2);
     printf("<!-- # = %d seed = %ld len = %d threads = %d time = %lld.%03lld ms ( %lld coupures ) -->\n",
@@ -187,3 +243,4 @@ int main (int argc, char **argv)
 
     return 0 ;
 }
+
